@@ -7,24 +7,29 @@ public class Player : MonoBehaviour
     public Bounds PlayerBounds { get; private set; }
     ColliderManager colliderManager;
     CharacterController characterController;
-    Renderer rend;
+    StateManager stateManager;
+
+    public Health Health { get; private set; }
 
     private void Start()
     {
-        rend = transform.Find("Renderer").GetComponent<Renderer>();
         colliderManager = GameManager.ActiveGameManager.ColliderManager;
         characterController = GetComponent<CharacterController>();
+        Health = GetComponent<Health>();
+        stateManager = GameManager.ActiveGameManager.StateManager;
     }
 
     private void Update()
     {
-        PlayerBounds = rend.bounds;
+        PlayerBounds = characterController.bounds;
         Bounds collisionBounds;
-        transform.position = new Vector3(transform.position.x, 0.2f, transform.position.z);
+
+        //stay on the ground unless youre hanging
+        if (stateManager.CURRENT_STATE != StateManager.PLAYER_STATE.HANG)
+            transform.position = new Vector3(transform.position.x, 0.2f, transform.position.z);
 
         if (colliderManager.CheckForIntersections(transform.position, out collisionBounds))
         {
-
             Vector3 target = collisionBounds.ClosestPoint(transform.position);
             target.y = transform.position.y;
 
@@ -38,6 +43,5 @@ public class Player : MonoBehaviour
 
             characterController.Move(move);
         }
-
     }
 }

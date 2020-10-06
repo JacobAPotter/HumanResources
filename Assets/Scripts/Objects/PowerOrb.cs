@@ -2,24 +2,40 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PowerOrb : MonoBehaviour
+public class PowerOrb : InteractWithPlayer
 {
-    Player player;
     PowerManager powerManager;
+    Renderer bodyRenderer;
+    float resetTimeStamp;
+    const float resetTime = 5f;
 
-    private void Start()
+    protected override void Start()
     {
-        player = GameManager.ActiveGameManager.Player;
+        base.Start();
         powerManager = GameManager.ActiveGameManager.PowerManager;
+        bodyRenderer = transform.Find("Body").GetComponent<Renderer>();
     }
 
-    void Update()
+    protected override void Update()
     {
-        Vector3 diff = transform.position - player.transform.position;
+        base.Update();
 
-        if(diff.sqrMagnitude < 1f)
+        if(!bodyRenderer.enabled &&
+           timeManager.WorldTime - resetTimeStamp > resetTime)
+                bodyRenderer.enabled = true;
+    }
+
+    protected override void Interact()
+    {
+        if (bodyRenderer.enabled)
         {
-            powerManager.ResetPower();
+            if (powerManager.PowerUnits < powerManager.MaxPowerUnits)
+            {
+                powerManager.ResetPower();
+                resetTimeStamp = timeManager.WorldTime;
+                bodyRenderer.enabled = false;
+            }
         }
     }
+
 }
